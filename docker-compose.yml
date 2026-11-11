@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  analytics-platform:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: analytics-platform-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PROJECT_NAME=Intelligent Data Analytics & Predictive Intelligence Platform
+      - API_V1_STR=/api
+      - SECRET_KEY=super-secret-key-intelligent-analytics-platform-2026
+      - ACCESS_TOKEN_EXPIRE_MINUTES=10080
+      - LLM_PROVIDER=none
+      # To enable LLM features, uncomment and set your API keys:
+      # - LLM_PROVIDER=gemini
+      # - GEMINI_API_KEY=your_gemini_api_key_here
+      # Or for OpenAI:
+      # - LLM_PROVIDER=openai
+      # - OPENAI_API_KEY=your_openai_api_key_here
+      # Or for local Ollama:
+      # - LLM_PROVIDER=ollama
+      # - OLLAMA_BASE_URL=http://ollama:11434
+      # - OLLAMA_MODEL=llama3
+    volumes:
+      - ./storage:/app/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # Optional Local Ollama Service for fully on-premise, offline AI execution
+  # Uncomment the block below to run a private local LLM along with the platform
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: analytics-platform-ollama
+  #   restart: unless-stopped
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+
+# volumes:
+#   ollama_data:
+

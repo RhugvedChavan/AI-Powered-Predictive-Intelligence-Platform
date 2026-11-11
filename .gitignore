@@ -1,0 +1,67 @@
+# Node & Frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Storage & Local Databases
+storage/uploads/*
+!storage/uploads/.gitkeep
+storage/processed/*
+!storage/processed/.gitkeep
+storage/models/*
+!storage/models/.gitkeep
+storage/reports/*
+!storage/reports/.gitkeep
+storage/duckdb/*
+!storage/duckdb/.gitkeep
+*.db
+*.sqlite3
+*.duckdb
+
+# Secrets & Environment variables
+.env
+.env.production
+*.pem
+*.key
+
+# IDEs & System
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
