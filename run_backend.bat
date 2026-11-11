@@ -29,3 +29,4 @@ if !errorlevel! neq 0 (
     echo [ERROR] Server exited with code !errorlevel!.
     pause
 )
+

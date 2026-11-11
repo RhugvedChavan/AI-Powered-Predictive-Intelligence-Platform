@@ -12,3 +12,4 @@ if (Test-Path $py310) {
     Write-Host "[WARN] Python 3.10 default path not found, testing system python..." -ForegroundColor Yellow
     python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 }
+
