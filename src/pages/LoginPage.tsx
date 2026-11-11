@@ -20,7 +20,13 @@ export const LoginPage: React.FC = () => {
       await login(email, password);
       navigate('/overview');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Invalid email or password.');
+      if (err.response?.data?.detail) {
+        setError(err.response.data.detail);
+      } else if (!err.response) {
+        setError('Cannot connect to backend server. Please verify the backend is running on port 8000.');
+      } else {
+        setError('Invalid email or password.');
+      }
     } finally {
       setLoading(false);
     }
