@@ -37,7 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const attemptDemoLogin = async () => {
       try {
-        const res = await authService.login('demo@platform.ai', 'demo12345');
+        const res = await authService.login('demo@gmail.com', 'demo12345');
         localStorage.setItem('token', res.access_token);
         setToken(res.access_token);
         setUser(res.user);

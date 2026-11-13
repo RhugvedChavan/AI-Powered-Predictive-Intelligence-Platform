@@ -1,4 +1,5 @@
 import os
+import io
 import shutil
 import uuid
 import json
@@ -6,6 +7,7 @@ import sqlite3
 import pandas as pd
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, status
+from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -13,9 +15,11 @@ from app.api.deps import get_db, get_current_user
 from app.models.user import User
 from app.models.project import Project
 from app.models.dataset import Dataset, DatasetColumn
+from app.models.cleaning import CleaningJob
 from app.models.activity import ActivityLog
 from app.schemas.dataset import DatasetResponse, DatasetDetailResponse, DatasetPreviewResponse
 from app.analytics.profiler import profile_dataframe
+from app.cleaning.engine import DataCleaningEngine
 
 router = APIRouter(prefix="/datasets", tags=["Datasets"])
 
@@ -26,6 +30,7 @@ async def upload_dataset(
     file: UploadFile = File(...),
     name: Optional[str] = Form(None),
     project_id: Optional[str] = Form(None),
+    auto_clean: bool = Form(True),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -96,10 +101,28 @@ async def upload_dataset(
             detail=f"Failed to parse dataset file: {str(e)}"
         )
 
-    # 5. Profile dataset
+    # 5. Automated Data Cleaning & Structuring (if enabled)
+    is_cleaned = False
+    cleaning_ops = []
+    before_stats = {}
+    after_stats = {}
+    if auto_clean:
+        try:
+            df, cleaning_ops, before_stats, after_stats = DataCleaningEngine.auto_clean_dataframe(df)
+            is_cleaned = True
+            clean_filename = f"{dataset_id}_clean.csv"
+            clean_file_path = str(settings.UPLOAD_DIR / clean_filename)
+            df.to_csv(clean_file_path, index=False)
+            file_path = clean_file_path
+            file_size = os.path.getsize(file_path)
+            ext = ".csv"
+        except Exception:
+            pass
+
+    # 6. Profile dataset
     overall_summary, column_profiles = profile_dataframe(df)
 
-    # 6. Save Dataset record
+    # 7. Save Dataset record
     dataset_name = name or os.path.splitext(file.filename)[0]
     dataset = Dataset(
         id=dataset_id,
@@ -113,12 +136,12 @@ async def upload_dataset(
         col_count=overall_summary["total_columns"],
         file_size_bytes=file_size,
         summary_json=json.dumps(overall_summary),
-        is_cleaned=False
+        is_cleaned=is_cleaned
     )
     db.add(dataset)
     db.commit()
 
-    # 7. Save Columns
+    # 8. Save Columns
     for col_info in column_profiles:
         col_rec = DatasetColumn(
             dataset_id=dataset.id,
@@ -131,8 +154,21 @@ async def upload_dataset(
             stats_json=json.dumps(col_info["stats"])
         )
         db.add(col_rec)
+
+    # 9. If auto-cleaned, record cleaning job lineage
+    if is_cleaned and cleaning_ops:
+        cleaning_job = CleaningJob(
+            id=str(uuid.uuid4()),
+            dataset_id=dataset.id,
+            cleaned_dataset_id=dataset.id,
+            status="applied",
+            operations_json=json.dumps(cleaning_ops),
+            before_stats_json=json.dumps(before_stats),
+            after_stats_json=json.dumps(after_stats)
+        )
+        db.add(cleaning_job)
         
-    # 8. Log activity
+    # 10. Log activity
     log = ActivityLog(
         user_id=current_user.id,
         action="upload",
@@ -142,7 +178,8 @@ async def upload_dataset(
             "name": dataset.name,
             "rows": dataset.row_count,
             "columns": dataset.col_count,
-            "file_type": dataset.file_type
+            "file_type": dataset.file_type,
+            "auto_cleaned": is_cleaned
         })
     )
     db.add(log)
@@ -191,7 +228,38 @@ def list_datasets(
         query = query.filter(Dataset.project_id == project_id)
     if search and isinstance(search, str):
         query = query.filter(Dataset.name.ilike(f"%{search}%"))
-    return query.order_by(Dataset.created_at.desc()).all()
+    datasets = query.order_by(Dataset.created_at.desc()).all()
+
+    results = []
+    for d in datasets:
+        col_list = []
+        for c in d.columns:
+            col_list.append({
+                "id": c.id,
+                "name": c.name,
+                "data_type": c.data_type,
+                "raw_type": c.raw_type,
+                "null_count": c.null_count,
+                "unique_count": c.unique_count,
+                "sample_values": json.loads(c.sample_values_json) if c.sample_values_json else [],
+                "stats": json.loads(c.stats_json) if c.stats_json else None
+            })
+        results.append({
+            "id": d.id,
+            "project_id": d.project_id,
+            "name": d.name,
+            "original_filename": d.original_filename,
+            "file_type": d.file_type,
+            "row_count": d.row_count,
+            "col_count": d.col_count,
+            "file_size_bytes": d.file_size_bytes,
+            "is_cleaned": d.is_cleaned,
+            "parent_dataset_id": d.parent_dataset_id,
+            "created_at": d.created_at,
+            "columns": col_list,
+            "summary": json.loads(d.summary_json) if d.summary_json else None
+        })
+    return results
 
 @router.get("/{dataset_id}", response_model=DatasetDetailResponse)
 def get_dataset(
@@ -280,6 +348,59 @@ def preview_dataset(
         "column_types": col_types,
         "rows": clean_rows
     }
+
+@router.get("/{dataset_id}/download")
+def download_dataset(
+    dataset_id: str,
+    format: str = Query("csv", pattern="^(csv|xlsx)$"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    dataset = db.query(Dataset).filter(Dataset.id == dataset_id, Dataset.user_id == current_user.id).first()
+    if not dataset or not os.path.exists(dataset.file_path):
+        raise HTTPException(status_code=404, detail="Dataset file not found")
+
+    ext = os.path.splitext(dataset.file_path)[1].lower()
+    safe_name = "".join(c for c in dataset.name if c.isalnum() or c in (" ", "_", "-")).strip()
+    if not safe_name:
+        safe_name = "dataset"
+
+    # Load dataframe
+    try:
+        if ext == ".csv":
+            df = pd.read_csv(dataset.file_path)
+        elif ext in (".xlsx", ".xls"):
+            df = pd.read_excel(dataset.file_path)
+        elif ext in (".sqlite", ".db"):
+            conn = sqlite3.connect(dataset.file_path)
+            tables = pd.read_sql_query("SELECT name FROM sqlite_master WHERE type='table'", conn)
+            first_table = tables.iloc[0]["name"]
+            df = pd.read_sql_query(f'SELECT * FROM "{first_table}"', conn)
+            conn.close()
+        else:
+            df = pd.read_csv(dataset.file_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read dataset for download: {str(e)}")
+
+    if format == "csv":
+        csv_buf = io.StringIO()
+        df.to_csv(csv_buf, index=False)
+        csv_bytes = csv_buf.getvalue().encode("utf-8")
+        return StreamingResponse(
+            io.BytesIO(csv_bytes),
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{safe_name}.csv"'}
+        )
+    elif format == "xlsx":
+        excel_buf = io.BytesIO()
+        with pd.ExcelWriter(excel_buf, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="Data")
+        excel_buf.seek(0)
+        return StreamingResponse(
+            excel_buf,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="{safe_name}.xlsx"'}
+        )
 
 @router.delete("/{dataset_id}")
 def delete_dataset(

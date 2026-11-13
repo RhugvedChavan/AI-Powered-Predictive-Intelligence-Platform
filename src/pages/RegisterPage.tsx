@@ -12,6 +12,7 @@ export const RegisterPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [readOnly, setReadOnly] = useState(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,14 +49,22 @@ export const RegisterPage: React.FC = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4 text-xs">
+            {/* Hidden dummy fields to consume browser autofill */}
+            <input type="text" name="fake_reg_username" style={{ display: 'none' }} tabIndex={-1} autoComplete="off" />
+            <input type="password" name="fake_reg_password" style={{ display: 'none' }} tabIndex={-1} autoComplete="off" />
+
             <div>
               <label className="block font-bold text-slate-300 mb-1">Full Name</label>
               <div className="relative">
                 <User className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
                 <input
                   type="text"
+                  name="user_fullname_noautofill"
                   required
+                  autoComplete="off"
+                  readOnly={readOnly}
+                  onFocus={() => setReadOnly(false)}
                   placeholder="e.g. Alex Turing"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
@@ -70,7 +79,11 @@ export const RegisterPage: React.FC = () => {
                 <Mail className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
                 <input
                   type="email"
+                  name="user_email_noautofill"
                   required
+                  autoComplete="off"
+                  readOnly={readOnly}
+                  onFocus={() => setReadOnly(false)}
                   placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -85,7 +98,11 @@ export const RegisterPage: React.FC = () => {
                 <Lock className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
                 <input
                   type="password"
+                  name="user_password_noautofill"
                   required
+                  autoComplete="new-password"
+                  readOnly={readOnly}
+                  onFocus={() => setReadOnly(false)}
                   placeholder="Create a strong password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

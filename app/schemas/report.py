@@ -3,7 +3,7 @@ from typing import Optional, Any
 from datetime import datetime
 
 class ReportGenerateRequest(BaseModel):
-    project_id: str
+    project_id: Optional[str] = None
     dataset_id: str
     title: str
     format: str = "pdf"  # pdf, excel, csv

@@ -24,17 +24,21 @@ def seed_demo_data():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        # 1. Create Demo User
-        demo_user = db.query(User).filter(User.email == "demo@platform.ai").first()
+        # 1. Create or ensure Demo User
+        demo_user = db.query(User).filter(User.email.in_(["demo@gmail.com", "demo@platform.ai"])).first()
         if not demo_user:
             demo_user = User(
                 id=str(uuid.uuid4()),
-                email="demo@platform.ai",
+                email="demo@gmail.com",
                 hashed_password=get_password_hash("demo12345"),
-                full_name="Sarah Connor (Lead Data Scientist)",
+                full_name="Admin",
                 role="admin"
             )
             db.add(demo_user)
+            db.commit()
+            db.refresh(demo_user)
+        elif demo_user.email != "demo@gmail.com":
+            demo_user.email = "demo@gmail.com"
             db.commit()
             db.refresh(demo_user)
 

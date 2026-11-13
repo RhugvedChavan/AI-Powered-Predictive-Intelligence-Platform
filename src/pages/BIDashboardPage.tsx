@@ -31,13 +31,14 @@ export const BIDashboardPage: React.FC = () => {
       const dsList = await datasetService.list();
       setDatasets(dsList);
       if (dsList.length > 0) {
-        setSelectedDatasetId(dsList[0].id);
-        const dashList = await biService.listDashboards(dsList[0].id);
+        const firstId = dsList[0].id;
+        setSelectedDatasetId(firstId);
+        const dashList = await biService.listDashboards(firstId);
         setDashboards(dashList);
         if (dashList.length > 0) {
           setActiveDashboard(dashList[0]);
         } else {
-          await createDefaultDashboard(dsList[0].id);
+          await createDefaultDashboard(firstId, dsList[0].name, dsList[0].project_id);
         }
       }
     } catch (err) {
@@ -47,15 +48,17 @@ export const BIDashboardPage: React.FC = () => {
     }
   };
 
-  const createDefaultDashboard = async (datasetId: string) => {
+  const createDefaultDashboard = async (datasetId: string, dsName?: string, projId?: string) => {
     setGenerating(true);
+    const ds = datasets.find((d) => d.id === datasetId);
     try {
       const newDash = await biService.createDashboard({
         dataset_id: datasetId,
-        name: 'Executive Business Overview'
+        project_id: projId || ds?.project_id,
+        name: `${dsName || ds?.name || 'Dataset'} Business Overview`
       });
       setActiveDashboard(newDash);
-      setDashboards([newDash, ...dashboards]);
+      setDashboards((prev) => [newDash, ...prev.filter((d) => d.id !== newDash.id)]);
     } catch (err) {
       console.error('Failed to create default dashboard:', err);
     } finally {
@@ -66,13 +69,14 @@ export const BIDashboardPage: React.FC = () => {
   const handleDatasetChange = async (id: string) => {
     setSelectedDatasetId(id);
     setGenerating(true);
+    const ds = datasets.find((d) => d.id === id);
     try {
       const dashList = await biService.listDashboards(id);
       setDashboards(dashList);
       if (dashList.length > 0) {
         setActiveDashboard(dashList[0]);
       } else {
-        await createDefaultDashboard(id);
+        await createDefaultDashboard(id, ds?.name, ds?.project_id);
       }
     } catch (err) {
       console.error(err);
@@ -194,8 +198,14 @@ export const BIDashboardPage: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-dashed border-slate-300 p-12 text-center text-slate-400 text-xs">
-          Select a dataset above to construct your business intelligence dashboard.
+        <div className="bg-white rounded-xl border border-dashed border-slate-300 p-12 text-center text-slate-500 text-xs space-y-3">
+          <p className="font-medium text-slate-600">No dashboard generated yet for this dataset.</p>
+          <button
+            onClick={() => createDefaultDashboard(selectedDatasetId)}
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-xs transition-colors"
+          >
+            Generate Executive BI Dashboard
+          </button>
         </div>
       )}
     </div>

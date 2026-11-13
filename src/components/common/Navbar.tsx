@@ -36,13 +36,12 @@ export const Navbar: React.FC<{ toggleSidebar: () => void }> = ({ toggleSidebar 
         </button>
 
         {/* User Profile Pill */}
-        <div className="flex items-center space-x-2 pl-2 border-l border-slate-200">
+        <div className="flex items-center space-x-2.5 pl-2 border-l border-slate-200">
           <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-            {user?.full_name ? user.full_name.charAt(0) : 'U'}
+            A
           </div>
           <div className="hidden sm:block text-left">
-            <div className="text-xs font-bold text-slate-800 leading-tight">{user?.full_name || 'Data Scientist'}</div>
-            <div className="text-[10px] text-slate-400 capitalize">{user?.role || 'Analyst'}</div>
+            <span className="text-xs font-bold text-slate-800 tracking-tight">Admin</span>
           </div>
           <button
             onClick={() => {

@@ -34,3 +34,31 @@ def test_data_cleaning_application():
     assert after_stats["missing_cells"] == 0
     assert cleaned_df["txt"].iloc[0] == "test"
 
+def test_auto_clean_dataframe():
+    data = {
+        " Customer Name ": [" Alice ", "Bob", "Alice ", np.nan, "Charlie"],
+        " Revenue ($) ": ["$1,000", "$2,500.50", "$1,000", "$500", "N/A"],
+        " Sign Date ": ["2024-01-01", "2024/02/15", "2024-01-01", "2024-03-10", "NULL"],
+        "Blank_Col": [None, None, None, None, None]
+    }
+    df = pd.DataFrame(data)
+    
+    cleaned_df, ops, before_stats, after_stats = DataCleaningEngine.auto_clean_dataframe(df)
+    
+    # Verify column headers sanitized
+    assert "customer_name" in cleaned_df.columns
+    assert "revenue" in cleaned_df.columns
+    assert "sign_date" in cleaned_df.columns
+    assert "blank_col" not in cleaned_df.columns  # empty column dropped
+    
+    # Verify duplicates removed
+    assert after_stats["duplicate_rows"] == 0
+    
+    # Verify missing values imputed
+    assert after_stats["missing_cells"] == 0
+    
+    # Verify numeric cast
+    assert pd.api.types.is_numeric_dtype(cleaned_df["revenue"])
+    assert len(ops) >= 3
+
+

@@ -54,14 +54,31 @@ export const datasetService = {
     const res = await apiClient.get(`/datasets/${id}/preview`, { params: { limit, offset } });
     return res.data;
   },
-  upload: async (file: File, name?: string): Promise<Dataset> => {
+  upload: async (file: File, name?: string, autoClean: boolean = true): Promise<Dataset> => {
     const formData = new FormData();
     formData.append('file', file);
     if (name) formData.append('name', name);
+    formData.append('auto_clean', String(autoClean));
     const res = await apiClient.post('/datasets/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return res.data;
+  },
+  download: async (id: string, filename: string, format: 'csv' | 'xlsx' = 'csv') => {
+    const res = await apiClient.get(`/datasets/${id}/download`, {
+      params: { format },
+      responseType: 'blob',
+    });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    const ext = format === 'xlsx' ? 'xlsx' : 'csv';
+    const cleanBaseName = filename.replace(/\.[^/.]+$/, '');
+    link.setAttribute('download', `${cleanBaseName}.${ext}`);
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode?.removeChild(link);
+    window.URL.revokeObjectURL(url);
   },
   delete: async (id: string) => {
     const res = await apiClient.delete(`/datasets/${id}`);
@@ -86,6 +103,13 @@ export const cleaningService = {
     const res = await apiClient.post('/cleaning/apply', {
       dataset_id: datasetId,
       operations,
+      new_dataset_name: newName,
+    });
+    return res.data;
+  },
+  autoClean: async (datasetId: string, newName?: string) => {
+    const res = await apiClient.post('/cleaning/auto-clean', {
+      dataset_id: datasetId,
       new_dataset_name: newName,
     });
     return res.data;
@@ -177,6 +201,7 @@ export const biService = {
   },
   createDashboard: async (data: {
     dataset_id: string;
+    project_id?: string;
     name: string;
     description?: string;
     kpis?: any[];

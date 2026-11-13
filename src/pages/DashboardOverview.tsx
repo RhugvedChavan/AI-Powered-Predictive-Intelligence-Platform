@@ -55,7 +55,7 @@ export const DashboardOverview: React.FC = () => {
             AI-Powered Autonomous Data Science
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Welcome back, {user?.full_name?.split(' ')[0] || 'Scientist'}
+            Welcome back, Admin
           </h2>
           <p className="mt-2 text-sm text-slate-300 leading-relaxed">
             Transform raw business datasets into automated statistical models, real-time forecasts,

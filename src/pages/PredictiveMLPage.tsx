@@ -79,15 +79,39 @@ export const PredictiveMLPage: React.FC = () => {
     }
   };
 
-  const setupDefaultsForDataset = (ds: Dataset) => {
+  const setupDefaultsForDataset = (ds: Dataset, currentTask = taskType) => {
     const cols = ds.columns || [];
     const numCols = cols.filter((c) => c.data_type === 'numerical').map((c) => c.name);
     const catCols = cols.filter((c) => c.data_type === 'categorical').map((c) => c.name);
 
-    if (numCols.length > 0) {
-      setTargetColumn(numCols[numCols.length - 1]); // e.g. Revenue
-      const feats = [...numCols.slice(0, -1), ...catCols].slice(0, 5);
-      setSelectedFeatures(feats);
+    if (currentTask === 'regression') {
+      if (numCols.length > 0) {
+        const target = numCols[numCols.length - 1];
+        setTargetColumn(target);
+        const feats = cols.map((c) => c.name).filter((c) => c !== target);
+        setSelectedFeatures(feats.slice(0, 5));
+      }
+    } else if (currentTask === 'classification') {
+      if (catCols.length > 0) {
+        const target = catCols[0];
+        setTargetColumn(target);
+        const feats = cols.map((c) => c.name).filter((c) => c !== target);
+        setSelectedFeatures(feats.slice(0, 5));
+      } else if (numCols.length > 0) {
+        const target = numCols[0];
+        setTargetColumn(target);
+        const feats = cols.map((c) => c.name).filter((c) => c !== target);
+        setSelectedFeatures(feats.slice(0, 5));
+      }
+    } else if (currentTask === 'clustering') {
+      setTargetColumn('');
+      setSelectedFeatures(numCols.slice(0, 5));
+    } else if (currentTask === 'time_series') {
+      if (numCols.length > 0) {
+        setTargetColumn(numCols[numCols.length - 1]);
+        const feats = cols.map((c) => c.name);
+        setSelectedFeatures(feats.slice(0, 3));
+      }
     }
   };
 
@@ -104,6 +128,10 @@ export const PredictiveMLPage: React.FC = () => {
     setTaskType(type);
     const algos = ALGORITHMS[type];
     setAlgorithm(algos[0]);
+    const currentDs = datasets.find((d) => d.id === selectedDatasetId);
+    if (currentDs) {
+      setupDefaultsForDataset(currentDs, type);
+    }
   };
 
   const handleTrain = async (e: React.FormEvent) => {
@@ -119,9 +147,11 @@ export const PredictiveMLPage: React.FC = () => {
     }
 
     setTraining(true);
+    const currentDs = datasets.find((d) => d.id === selectedDatasetId);
     try {
       const createdModel = await mlService.train({
         dataset_id: selectedDatasetId,
+        project_id: currentDs?.project_id,
         name: modelName || `${algorithm} Model`,
         task_type: taskType,
         algorithm,

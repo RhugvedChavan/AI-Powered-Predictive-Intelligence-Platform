@@ -13,7 +13,7 @@ class KPIDefinition(BaseModel):
     subtitle: Optional[str] = None
 
 class DashboardCreateRequest(BaseModel):
-    project_id: str
+    project_id: Optional[str] = None
     dataset_id: str
     name: str
     description: Optional[str] = None

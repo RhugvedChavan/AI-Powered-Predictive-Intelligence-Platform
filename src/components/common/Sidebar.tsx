@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Database, Sparkles, BarChart3, Bot,
-  Cpu, LineChart, FileText, History, Settings, Brain, ChevronRight
+  Cpu, LineChart, FileText, History, Brain, ChevronRight
 } from 'lucide-react';
 
 const navigation = [
@@ -15,7 +15,6 @@ const navigation = [
   { name: 'Business Intelligence', href: '/bi', icon: LineChart },
   { name: 'Reports', href: '/reports', icon: FileText },
   { name: 'History', href: '/history', icon: History },
-  { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
 export const Sidebar: React.FC<{ isOpen: boolean; toggleSidebar: () => void }> = ({ isOpen }) => {
@@ -64,18 +63,6 @@ export const Sidebar: React.FC<{ isOpen: boolean; toggleSidebar: () => void }> =
             ) : null}
           </NavLink>
         ))}
-      </div>
-
-      {/* Engine Status Footer */}
-      <div className="p-4 border-t border-slate-800/80 bg-slate-950/40">
-        <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
-          <span className="flex items-center">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-2" />
-            DuckDB Analytics Engine
-          </span>
-          <span className="text-[10px] font-mono text-emerald-400 font-semibold">Active</span>
-        </div>
-        <p className="text-[11px] text-slate-500">Autonomous multi-agent data science suite</p>
       </div>
     </aside>
   );

@@ -7,10 +7,19 @@ from typing import Any, Optional
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, GradientBoostingRegressor, GradientBoostingClassifier
+from sklearn.linear_model import LinearRegression, LogisticRegression, Ridge, Lasso
+from sklearn.ensemble import (
+    RandomForestRegressor, RandomForestClassifier,
+    GradientBoostingRegressor, GradientBoostingClassifier,
+    AdaBoostRegressor, AdaBoostClassifier,
+    IsolationForest
+)
 from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
-from sklearn.cluster import KMeans
+from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier, LocalOutlierFactor
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import OneClassSVM
+from sklearn.cluster import KMeans, AgglomerativeClustering, DBSCAN
+from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn.metrics import (
     mean_absolute_error, mean_squared_error, r2_score,
     accuracy_score, precision_score, recall_score, f1_score,
@@ -113,6 +122,15 @@ class MLEngine:
             model = DecisionTreeRegressor(random_state=42)
         elif algorithm == "GradientBoostingRegressor":
             model = GradientBoostingRegressor(random_state=42)
+        elif algorithm == "AdaBoostRegressor":
+            model = AdaBoostRegressor(random_state=42)
+        elif algorithm == "Ridge":
+            model = Ridge()
+        elif algorithm == "Lasso":
+            model = Lasso()
+        elif algorithm == "KNeighborsRegressor":
+            n_neighbors = min(5, max(len(X_train) - 1, 1))
+            model = KNeighborsRegressor(n_neighbors=n_neighbors)
         else:
             model = RandomForestRegressor(n_estimators=100, random_state=42)
             algorithm = "RandomForestRegressor"

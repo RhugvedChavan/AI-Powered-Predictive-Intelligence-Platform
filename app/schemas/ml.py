@@ -1,10 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, Any
 from datetime import datetime
 
 class ModelTrainRequest(BaseModel):
     dataset_id: str
-    project_id: str
+    project_id: Optional[str] = None
     name: str
     task_type: str  # regression, classification, clustering, time_series
     algorithm: str  # LinearRegression, RandomForestRegressor, DecisionTreeRegressor, GradientBoostingRegressor,
@@ -16,6 +16,8 @@ class ModelTrainRequest(BaseModel):
     hyperparameters: Optional[dict[str, Any]] = None
 
 class ModelMetrics(BaseModel):
+    model_config = ConfigDict(extra="allow", from_attributes=True)
+
     # Regression
     mae: Optional[float] = None
     mse: Optional[float] = None
@@ -33,6 +35,15 @@ class ModelMetrics(BaseModel):
     # Clustering
     silhouette_score: Optional[float] = None
     cluster_distribution: Optional[dict[str, int]] = None
+
+    # Anomaly Detection
+    anomaly_count: Optional[int] = None
+    inlier_count: Optional[int] = None
+    anomaly_rate: Optional[float] = None
+
+    # Dimensionality Reduction
+    explained_variance_ratio: Optional[list[float]] = None
+    cumulative_variance: Optional[float] = None
 
 class ModelDetailResponse(BaseModel):
     id: str

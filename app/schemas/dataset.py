@@ -27,13 +27,14 @@ class DatasetResponse(BaseModel):
     is_cleaned: bool
     parent_dataset_id: Optional[str] = None
     created_at: datetime
+    columns: list[DatasetColumnResponse] = []
+    summary: Optional[dict[str, Any]] = None
 
     class Config:
         from_attributes = True
 
 class DatasetDetailResponse(DatasetResponse):
-    columns: list[DatasetColumnResponse] = []
-    summary: Optional[dict[str, Any]] = None
+    pass
 
 class DatasetPreviewResponse(BaseModel):
     dataset_id: str

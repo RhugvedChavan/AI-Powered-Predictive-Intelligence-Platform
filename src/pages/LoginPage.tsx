@@ -7,10 +7,11 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const [email, setEmail] = useState('demo@platform.ai');
-  const [password, setPassword] = useState('demo12345');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [readOnly, setReadOnly] = useState(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,14 +55,23 @@ export const LoginPage: React.FC = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4 text-xs">
+            {/* Hidden dummy fields to consume browser autofill */}
+            <input type="text" name="fake_username" style={{ display: 'none' }} tabIndex={-1} autoComplete="off" />
+            <input type="password" name="fake_password" style={{ display: 'none' }} tabIndex={-1} autoComplete="off" />
+
             <div>
               <label className="block font-bold text-slate-300 mb-1">Email Address</label>
               <div className="relative">
                 <Mail className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
                 <input
                   type="email"
+                  name="user_email_noautofill"
                   required
+                  autoComplete="off"
+                  readOnly={readOnly}
+                  onFocus={() => setReadOnly(false)}
+                  placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-9 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white placeholder-slate-500"
@@ -75,7 +85,12 @@ export const LoginPage: React.FC = () => {
                 <Lock className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
                 <input
                   type="password"
+                  name="user_password_noautofill"
                   required
+                  autoComplete="new-password"
+                  readOnly={readOnly}
+                  onFocus={() => setReadOnly(false)}
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-9 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white placeholder-slate-500"
@@ -95,15 +110,7 @@ export const LoginPage: React.FC = () => {
             </div>
           </form>
 
-          {/* Quick Demo Credentials helper */}
           <div className="mt-6 pt-5 border-t border-slate-800 text-center">
-            <span className="text-[11px] text-slate-400 block mb-1">Demo Credentials Pre-filled:</span>
-            <code className="text-[11px] bg-slate-800 text-indigo-300 px-2.5 py-1 rounded-md font-mono">
-              demo@platform.ai / demo12345
-            </code>
-          </div>
-
-          <div className="mt-4 text-center">
             <Link to="/register" className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">
               Don't have an account? Register here
             </Link>

@@ -19,6 +19,6 @@ echo  Platform is starting!
 echo  - Backend API: http://localhost:8000
 echo  - Swagger Docs: http://localhost:8000/docs
 echo  - Frontend UI: http://localhost:5173
-echo  - Demo Login: demo@platform.ai / demo12345
+echo  - Demo Login: demo@gmail.com / demo12345
 echo ==============================================================================
 

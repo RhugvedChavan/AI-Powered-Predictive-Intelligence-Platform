@@ -11,7 +11,6 @@ import { PredictiveMLPage } from './pages/PredictiveMLPage';
 import { BIDashboardPage } from './pages/BIDashboardPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { HistoryPage } from './pages/HistoryPage';
-import { SettingsPage } from './pages/SettingsPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { LoadingSpinner } from './components/common/LoadingSpinner';
@@ -62,7 +61,6 @@ export const App: React.FC = () => {
             <Route path="bi" element={<BIDashboardPage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="history" element={<HistoryPage />} />
-            <Route path="settings" element={<SettingsPage />} />
           </Route>
 
           {/* Catch-all redirect */}

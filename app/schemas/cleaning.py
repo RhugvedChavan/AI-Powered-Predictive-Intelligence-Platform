@@ -31,6 +31,10 @@ class CleaningApplyRequest(BaseModel):
     operations: list[CleaningOperation]
     new_dataset_name: Optional[str] = None
 
+class AutoCleanRequest(BaseModel):
+    dataset_id: str
+    new_dataset_name: Optional[str] = None
+
 class CleaningJobResponse(BaseModel):
     id: str
     dataset_id: str

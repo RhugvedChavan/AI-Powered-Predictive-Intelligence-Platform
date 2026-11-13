@@ -15,7 +15,7 @@ def get_current_user(
 ) -> User:
     if not token:
         # Fallback to demo/default user if no auth header for seamless exploration
-        user = db.query(User).filter(User.email == "demo@platform.ai").first()
+        user = db.query(User).filter(User.email.in_(["demo@gmail.com", "demo@platform.ai"])).first()
         if user:
             return user
         raise HTTPException(

@@ -65,3 +65,4 @@ storage/duckdb/*
 Thumbs.db
 *.log
 
+.env 

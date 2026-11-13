@@ -1,4 +1,5 @@
 import re
+import warnings
 import numpy as np
 import pandas as pd
 from typing import Any, Optional
@@ -256,4 +257,179 @@ class DataCleaningEngine:
         }
         
         return cleaned_df, before_stats, after_stats
+
+    @staticmethod
+    def auto_clean_dataframe(df: pd.DataFrame) -> tuple[pd.DataFrame, list[dict[str, Any]], dict[str, Any], dict[str, Any]]:
+        """
+        Performs fully automated end-to-end data cleaning, column standardization,
+        placeholder replacement, missing value imputation, deduplication, and tabular formatting.
+        Returns: (cleaned_df, applied_operations, before_stats, after_stats)
+        """
+        cleaned_df = df.copy()
+        applied_ops: list[dict[str, Any]] = []
+
+        before_stats = {
+            "row_count": len(df),
+            "col_count": len(df.columns),
+            "duplicate_rows": int(df.duplicated().sum()),
+            "missing_cells": int(df.isna().sum().sum()),
+            "columns": {str(c): int(df[c].isna().sum()) for c in df.columns}
+        }
+
+        # 1. Clean & Standardize Column Headers
+        new_cols = []
+        for i, col in enumerate(cleaned_df.columns):
+            c_str = str(col).strip()
+            c_clean = re.sub(r'[\s\W]+', '_', c_str).strip('_').lower()
+            if not c_clean:
+                c_clean = f"column_{i+1}"
+            new_cols.append(c_clean)
+
+        unique_cols = []
+        counts: dict[str, int] = {}
+        for c in new_cols:
+            if c in counts:
+                counts[c] += 1
+                unique_cols.append(f"{c}_{counts[c]}")
+            else:
+                counts[c] = 0
+                unique_cols.append(c)
+
+        if list(cleaned_df.columns) != unique_cols:
+            cleaned_df.columns = unique_cols
+            applied_ops.append({
+                "operation": "standardize_headers",
+                "column": None,
+                "strategy": "clean_snake_case",
+                "custom_value": None,
+                "target_type": None
+            })
+
+        # 2. Drop completely empty columns
+        empty_cols = [c for c in cleaned_df.columns if cleaned_df[c].isna().all()]
+        if empty_cols:
+            cleaned_df = cleaned_df.drop(columns=empty_cols)
+            for ec in empty_cols:
+                applied_ops.append({
+                    "operation": "drop_columns",
+                    "column": ec,
+                    "strategy": "drop_empty_column",
+                    "custom_value": None,
+                    "target_type": None
+                })
+
+        # 3. Drop completely empty rows
+        init_rows = len(cleaned_df)
+        cleaned_df = cleaned_df.dropna(how="all")
+        if len(cleaned_df) < init_rows:
+            applied_ops.append({
+                "operation": "drop_empty_rows",
+                "column": None,
+                "strategy": "drop_blank_rows",
+                "custom_value": None,
+                "target_type": None
+            })
+
+        # 4. Clean, strip whitespace, and normalize text/data types
+        placeholder_regex = r'^\s*(?i:n/a|na|null|none|nil|-|--|\?)\s*$'
+        for col in cleaned_df.columns:
+            s = cleaned_df[col]
+            if s.dtype == 'object':
+                s_stripped = s.astype(str).str.strip()
+                s_cleaned = s_stripped.replace(to_replace=placeholder_regex, value=np.nan, regex=True)
+                s_cleaned = s_cleaned.mask(s_cleaned.isin(['nan', 'NaN', 'None', 'NULL', 'null', '']), np.nan)
+
+                # Check if formatted currency or numeric string
+                cleaned_numeric = s_cleaned.str.replace(r'[\$,€£¥%]', '', regex=True).str.replace(',', '', regex=False)
+                num_converted = pd.to_numeric(cleaned_numeric, errors='coerce')
+                valid_num_count = int(num_converted.notna().sum())
+                non_null_count = int(s_cleaned.notna().sum())
+
+                if non_null_count > 0 and (valid_num_count / non_null_count) >= 0.8:
+                    cleaned_df[col] = num_converted
+                    applied_ops.append({
+                        "operation": "convert_type",
+                        "column": col,
+                        "strategy": "currency_numeric_cast",
+                        "custom_value": None,
+                        "target_type": "float"
+                    })
+                else:
+                    # Check if date
+                    try:
+                        with warnings.catch_warnings():
+                            warnings.simplefilter("ignore")
+                            date_converted = pd.to_datetime(s_cleaned, errors='coerce')
+                        valid_date_count = int(date_converted.notna().sum())
+                        if non_null_count > 0 and (valid_date_count / non_null_count) >= 0.8 and 'id' not in col:
+                            cleaned_df[col] = date_converted.dt.strftime('%Y-%m-%d')
+                            applied_ops.append({
+                                "operation": "standardize_text",
+                                "column": col,
+                                "strategy": "iso_date_format",
+                                "custom_value": None,
+                                "target_type": "date"
+                            })
+                        else:
+                            cleaned_df[col] = s_cleaned
+                    except Exception:
+                        cleaned_df[col] = s_cleaned
+
+        # 5. Deduplicate rows (post whitespace & type normalization)
+        dup_count = int(cleaned_df.duplicated().sum())
+        if dup_count > 0:
+            cleaned_df = cleaned_df.drop_duplicates()
+            applied_ops.append({
+                "operation": "drop_duplicates",
+                "column": None,
+                "strategy": "drop",
+                "custom_value": None,
+                "target_type": None
+            })
+
+        # 6. Impute remaining missing values
+        for col in cleaned_df.columns:
+            s = cleaned_df[col]
+            null_count = int(s.isna().sum())
+            if null_count > 0:
+                if pd.api.types.is_numeric_dtype(s):
+                    med = s.median()
+                    if pd.notna(med):
+                        val = int(med) if (s.dropna() % 1 == 0).all() else round(float(med), 2)
+                        cleaned_df[col] = s.fillna(val)
+                        applied_ops.append({
+                            "operation": "fill_missing",
+                            "column": col,
+                            "strategy": "median",
+                            "custom_value": float(val),
+                            "target_type": None
+                        })
+                else:
+                    mode_val = s.mode()
+                    fill_val = mode_val.iloc[0] if not mode_val.empty else "Unknown"
+                    cleaned_df[col] = s.fillna(fill_val)
+                    applied_ops.append({
+                        "operation": "fill_missing",
+                        "column": col,
+                        "strategy": "mode",
+                        "custom_value": str(fill_val),
+                        "target_type": None
+                    })
+
+        # Final deduplication check if imputation resulted in identical rows
+        if cleaned_df.duplicated().sum() > 0:
+            cleaned_df = cleaned_df.drop_duplicates()
+
+        cleaned_df = cleaned_df.reset_index(drop=True)
+
+        after_stats = {
+            "row_count": len(cleaned_df),
+            "col_count": len(cleaned_df.columns),
+            "duplicate_rows": int(cleaned_df.duplicated().sum()),
+            "missing_cells": int(cleaned_df.isna().sum().sum()),
+            "columns": {str(c): int(cleaned_df[c].isna().sum()) for c in cleaned_df.columns}
+        }
+
+        return cleaned_df, applied_ops, before_stats, after_stats
+
 
