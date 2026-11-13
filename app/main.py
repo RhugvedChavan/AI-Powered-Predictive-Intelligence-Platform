@@ -166,7 +166,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    description="Enterprise-grade Intelligent Data Analytics & Predictive Intelligence Platform API",
+    description="Enterprise-grade AI-Powered Predictive Intelligence Platform API",
     version="1.0.0",
     lifespan=lifespan
 )

@@ -1,7 +1,7 @@
 @echo off
-title Launch Intelligent Data Analytics Platform
+title Launch AI-Powered Predictive Intelligence Platform
 echo ==============================================================================
-echo  Launching Intelligent Data Analytics ^& Predictive Intelligence Platform
+echo  Launching AI-Powered Predictive Intelligence Platform
 echo ==============================================================================
 
 echo [1/2] Launching Backend Server in new terminal...

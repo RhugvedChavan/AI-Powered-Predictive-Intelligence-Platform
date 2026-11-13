@@ -1,7 +1,7 @@
 @echo off
-title Install Platform Python Dependencies
+title Install Dependencies - AI-Powered Predictive Intelligence Platform
 echo ==============================================================================
-echo  Installing Dependencies for Intelligent Data Analytics Platform
+echo  Installing Dependencies for AI-Powered Predictive Intelligence Platform
 echo ==============================================================================
 
 :: Check Python

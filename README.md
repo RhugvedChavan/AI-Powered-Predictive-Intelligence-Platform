@@ -1,4 +1,4 @@
-# Intelligent Data Analytics & Predictive Intelligence Platform
+# AI-Powered Predictive Intelligence Platform
 
 
 An enterprise-grade, end-to-end, AI-powered predictive intelligence platform that functions as an autonomous data scientist. The application automates ingestion of heterogeneous business datasets, profiles data schema and quality, executes non-destructive data cleaning and tabular structuring, enables natural language SQL querying via DuckDB, trains machine learning models, generates live forecasts, builds real-time BI dashboards, and compiles boardroom-ready multi-format business reports (PDF, Excel XLSX, and CSV).
@@ -14,7 +14,7 @@ To democratize advanced data science and predictive analytics for business profe
 
 Organizations often maintain disconnected business data across disparate spreadsheets (CSV, Excel) and SQL/DuckDB databases. Non-technical stakeholders struggle to clean missing values, normalize formats, discover hidden correlations, select predictive algorithms, and extract actionable insights.
 
-The **Intelligent Data Analytics & Predictive Intelligence Platform** solves this by uniting automated data profiling, intelligent tabular cleaning, multi-agent conversational data analysis, full-lifecycle predictive machine learning (regression, classification, clustering, time-series forecasting), and dynamic executive reporting into a cohesive, secure web application:
+The **AI-Powered Predictive Intelligence Platform** solves this by uniting automated data profiling, intelligent tabular cleaning, multi-agent conversational data analysis, full-lifecycle predictive machine learning (regression, classification, clustering, time-series forecasting), and dynamic executive reporting into a cohesive, secure web application:
 
 - **Autonomous Data Cleaning**: Uploaded datasets are automatically inspected, standardized, deduplicated, and formatted into clean tabular records with a single click.
 - **Conversational Analytics**: Users query datasets in natural language; queries are translated into safe, parameterized, read-only DuckDB SQL with interactive Recharts visualizations.
@@ -27,7 +27,7 @@ The **Intelligent Data Analytics & Predictive Intelligence Platform** solves thi
 ## Architecture Structure
 
 
-Intelligent Data Analytics & Predictive Intelligence Platform/
+AI-Powered Predictive Intelligence Platform/
 ├── app/                                 # Backend FastAPI Architecture
 │   ├── analytics/                       # Analytical Profiling & Summary Engines
 │   │   ├── duckdb_manager.py            # High-performance DuckDB query manager
@@ -142,7 +142,7 @@ tests/unit/test_reports.py         .     [Pass]
 
 ## Conclusion
 
-The **Intelligent Data Analytics & Predictive Intelligence Platform** bridges the divide between non-technical business decision-makers and complex data science infrastructure. 
+The **AI-Powered Predictive Intelligence Platform** bridges the divide between non-technical business decision-makers and complex data science infrastructure. 
 
 By combining FastAPI's asynchronous backend performance, DuckDB's analytical query capabilities, Scikit-learn's modeling tools, and an intuitive React 18 interface, the platform delivers autonomous data science workflows: from raw messy file uploads to auto-cleaned tabular records, natural-language exploration, predictive model inference, and executive boardroom reports.
 

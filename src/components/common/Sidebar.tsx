@@ -30,8 +30,8 @@ export const Sidebar: React.FC<{ isOpen: boolean; toggleSidebar: () => void }> =
           <Brain className="w-5 h-5" />
         </div>
         <div>
-          <h1 className="text-sm font-bold text-white tracking-tight leading-none">Intelligent Analytics</h1>
-          <span className="text-[10px] font-semibold tracking-wider uppercase text-indigo-400">Predictive Platform</span>
+          <h1 className="text-sm font-bold text-white tracking-tight leading-none">AI-Powered</h1>
+          <span className="text-[10px] font-semibold tracking-wider uppercase text-indigo-400">Predictive Intelligence</span>
         </div>
       </div>
 

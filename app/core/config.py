@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Intelligent Data Analytics & Predictive Intelligence Platform"
+    PROJECT_NAME: str = "AI-Powered Predictive Intelligence Platform"
     API_V1_STR: str = "/api"
     
     # Storage Paths

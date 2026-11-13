@@ -1,5 +1,5 @@
 # ==============================================================================
-# Multi-stage Dockerfile for Intelligent Data Analytics & Predictive Intelligence Platform
+# Multi-stage Dockerfile for AI-Powered Predictive Intelligence Platform
 # ==============================================================================
 
 # Stage 1: Build React Frontend

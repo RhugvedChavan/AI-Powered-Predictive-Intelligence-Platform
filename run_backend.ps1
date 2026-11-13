@@ -1,5 +1,5 @@
 Write-Host "==============================================================================" -ForegroundColor Cyan
-Write-Host " Intelligent Data Analytics & Predictive Intelligence Platform - Backend" -ForegroundColor Cyan
+Write-Host " AI-Powered Predictive Intelligence Platform - Backend" -ForegroundColor Cyan
 Write-Host "==============================================================================" -ForegroundColor Cyan
 
 $py310 = "C:\Users\A\AppData\Local\Programs\Python\Python310\python.exe"

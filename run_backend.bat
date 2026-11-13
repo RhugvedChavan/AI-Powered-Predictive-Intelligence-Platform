@@ -1,8 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
-title Analytics Platform Backend Server
+title AI-Powered Predictive Intelligence Platform - Backend Server
 echo ==============================================================================
-echo  Intelligent Data Analytics ^& Predictive Intelligence Platform - Backend
+echo  AI-Powered Predictive Intelligence Platform - Backend
 echo ==============================================================================
 
 :: Prioritize Python 3.10 where all scientific and ML packages are installed

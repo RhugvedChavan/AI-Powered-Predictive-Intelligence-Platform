@@ -170,7 +170,7 @@ class ReportGenerator:
         
         # Document Header
         story.append(Paragraph(sections.get("title", "Business Intelligence Report"), title_style))
-        story.append(Paragraph(f"Generated on {sections.get('generated_at', '')} | Intelligent Analytics Platform", subtitle_style))
+        story.append(Paragraph(f"Generated on {sections.get('generated_at', '')} | AI-Powered Predictive Intelligence Platform", subtitle_style))
         story.append(HRFlowable(width="100%", thickness=1.5, color=navy_accent, spaceBefore=0, spaceAfter=14))
         
         # 1. Executive Summary

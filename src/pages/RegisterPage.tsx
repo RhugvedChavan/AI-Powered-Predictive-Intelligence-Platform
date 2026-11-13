@@ -37,7 +37,7 @@ export const RegisterPage: React.FC = () => {
           <Brain className="w-6 h-6" />
         </div>
         <h2 className="text-2xl font-black tracking-tight text-white">Create New Workspace</h2>
-        <p className="mt-1 text-xs text-slate-400">Join the intelligent analytics & predictive intelligence platform</p>
+        <p className="mt-1 text-xs text-slate-400">Join the AI-powered predictive intelligence platform</p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
